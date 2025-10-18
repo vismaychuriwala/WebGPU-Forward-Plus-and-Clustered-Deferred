@@ -14,8 +14,18 @@ struct LightSet {
 
 struct CameraUniforms {
     // TODO-1.3: add an entry for the view proj mat (of type mat4x4f)
+    viewMat:     mat4x4<f32>,
     viewProjMat: mat4x4f,
+    nearPlane   : f32,
+    farPlane    : f32,
+    tanHalfFovY : f32,
+    aspect      : f32,
 }
+
+struct ClusterRecord {
+  offset: u32,
+  count: u32,
+};
 
 // CHECKITOUT: this special attenuation function ensures lights don't affect geometry outside the maximum light radius
 fn rangeAttenuation(distance: f32) -> f32 {
