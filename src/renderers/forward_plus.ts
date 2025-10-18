@@ -81,14 +81,14 @@ export class ForwardPlusRenderer extends renderer.Renderer {
             },
             vertex: {
                 module: renderer.device.createShaderModule({
-                    label: "Forward+ shader (same as naive vert)",
+                    label: "Forward+ vert shader (same as naive vert)",
                     code: shaders.naiveVertSrc
                 }),
                 buffers: [ renderer.vertexBufferLayout ]
             },
             fragment: {
                 module: renderer.device.createShaderModule({
-                    label: "naive frag shader",
+                    label: "Forward+ frag shader",
                     code: shaders.forwardPlusFragSrc,
                 }),
                 targets: [
