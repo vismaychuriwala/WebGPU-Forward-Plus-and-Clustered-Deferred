@@ -31,8 +31,8 @@ export const constants = {
     moveLightsWorkgroupSize: 128,
 
     // Cluster settings
-    xSlices: 4,
-    ySlices: 4,
+    xSlices: 16,
+    ySlices: 9,
     zSlices: 24,
     
     maxLightsPerCluster: 128,

@@ -98,16 +98,21 @@ fn compute_cluster_bounds(ix: u32, iy: u32, iz: u32) -> AABB {
   let y0_ndc = edge_to_ndc(iy, Y_SLICES);
   let y1_ndc = edge_to_ndc(iy + 1u, Y_SLICES);
 
+  let depth_pos_near = z_near_d;
   let depth_pos_far = z_far_d; // = -z1
+  let x0_near = x0_ndc * depth_pos_near * tanX;
+  let x1_near = x1_ndc * depth_pos_near * tanX;
   let x0_far = x0_ndc * depth_pos_far * tanX;
   let x1_far = x1_ndc * depth_pos_far * tanX;
+  let y0_near = y0_ndc * depth_pos_near * tanY;
+  let y1_near = y1_ndc * depth_pos_near * tanY;
   let y0_far = y0_ndc * depth_pos_far * tanY;
   let y1_far = y1_ndc * depth_pos_far * tanY;
 
-  let x_min = min(x0_far, x1_far);
-  let x_max = max(x0_far, x1_far);
-  let y_min = min(y0_far, y1_far);
-  let y_max = max(y0_far, y1_far);
+  let x_min = min(min(x0_near, x1_near), min(x0_far, x1_far));
+  let x_max = max(max(x0_near, x1_near), max(x0_far, x1_far));
+  let y_min = min(min(y0_near, y1_near), min(y0_far, y1_far));
+  let y_max = max(max(y0_near, y1_near), max(y0_far, y1_far));
 
   let z_min = min(z0, z1);
   let z_max = max(z0, z1);
