@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: '/WebGPU-Forward-Plus-and-Clustered-Deferred/',
-  build: {
-    outDir: 'dist',
-  },
+    build: {
+        target: 'esnext'
+    },
+    base: process.env.GITHUB_ACTIONS_BASE || undefined
 })
