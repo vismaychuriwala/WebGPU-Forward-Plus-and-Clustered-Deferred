@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --open",
-    "build": "vite build && cp -r scenes/ dist/"
+    "build": "vite build && cp -r scenes/ dist/",
+    "preview": "vite preview --port 4173 --strictPort --host"
   },
   "devDependencies": {
     "@types/dat.gui": "^0.7.13",
