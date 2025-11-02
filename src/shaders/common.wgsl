@@ -20,6 +20,7 @@ struct CameraUniforms {
     farPlane    : f32,
     tanHalfFovY : f32,
     aspect      : f32,
+    tanHalfFovX : f32,
 }
 
 struct ClusterRecord {

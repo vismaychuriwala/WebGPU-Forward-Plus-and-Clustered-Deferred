@@ -60,7 +60,7 @@ fn main(in: FragmentInput) -> @location(0) vec4f {
   let d: f32 = -viewPos.z;
 
   let tanHalfFovY = camera_uniforms.tanHalfFovY;
-  let tanHalfFovX = tanHalfFovY * camera_uniforms.aspect;
+  let tanHalfFovX = camera_uniforms.tanHalfFovX;
 
   let nx: f32 = viewPos.x / (d * tanHalfFovX);
   let ny: f32 = viewPos.y / (d * tanHalfFovY);

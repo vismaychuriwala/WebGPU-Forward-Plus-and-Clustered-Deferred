@@ -83,7 +83,7 @@ fn dist2_point_aabb(p: vec3f, bmin: vec3f, bmax: vec3f) -> f32 {
 
 fn compute_cluster_bounds(ix: u32, iy: u32, iz: u32) -> AABB {
   let tanY = camera_uniforms.tanHalfFovY;
-  let tanX = tanY * camera_uniforms.aspect;
+  let tanX = camera_uniforms.tanHalfFovX;
 
   let t0 = f32(iz) / f32(Z_SLICES);
   let t1 = f32(iz + 1u) / f32(Z_SLICES);
@@ -133,9 +133,6 @@ fn main(@builtin(global_invocation_id) gid: vec3u) {
 
   let idx = cluster_index(gid.x, gid.y, gid.z);
   let base = idx * MAX_LIGHTS_PER_CLUSTER;
-
-  let tanY = camera_uniforms.tanHalfFovY;
-  let tanX = tanY * camera_uniforms.aspect;
 
   // Compute cluster view-space AABB
   let bounds = compute_cluster_bounds(gid.x, gid.y, gid.z);

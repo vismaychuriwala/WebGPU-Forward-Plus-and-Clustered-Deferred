@@ -76,7 +76,7 @@ fn main(in: FragmentInput) -> @location(0) vec4f {
   let d = -viewPos.z; // positive distance forward from camera
 
   let tanHalfFovY = camera_uniforms.tanHalfFovY;
-  let tanHalfFovX = tanHalfFovY * camera_uniforms.aspect;
+  let tanHalfFovX = camera_uniforms.tanHalfFovX;
 
   // Projected coordinates in view-space normalized to [-1, 1]
   let nx = viewPos.x / (d * tanHalfFovX);

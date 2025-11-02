@@ -3,7 +3,7 @@ import { toRadians } from "../math_util";
 import { device, canvas, fovYDegrees, aspectRatio } from "../renderer";
 
 class CameraUniforms {
-    readonly buffer = new ArrayBuffer(36 * 4);
+    readonly buffer = new ArrayBuffer(40 * 4); // 160 bytes - padded to multiple of 16 for uniform buffer alignment
     private readonly floatView = new Float32Array(this.buffer);
 
     set viewMat(mat: Float32Array) {
@@ -16,11 +16,13 @@ class CameraUniforms {
 
     setClusterParams(near: number, far: number, fovYDeg: number, aspect: number) {
         const tanHalfFovY = Math.tan(toRadians(fovYDeg * 0.5));
-        // write at index 16..19
+        const tanHalfFovX = tanHalfFovY * aspect;
+        // write at index 32..36
         this.floatView[32] = near;
         this.floatView[33] = far;
         this.floatView[34] = tanHalfFovY;
         this.floatView[35] = aspect;
+        this.floatView[36] = tanHalfFovX;
     }
 
     // TODO-2: add extra functions to set values needed for light clustering here
