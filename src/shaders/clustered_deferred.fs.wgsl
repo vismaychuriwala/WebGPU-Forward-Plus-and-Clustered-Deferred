@@ -17,7 +17,6 @@ struct FragmentInput {
 struct FragmentOutput {
     @location(0) albedo: vec4f,
     @location(1) normal: vec4f,
-    @location(2) position: vec4f,
 };
 
 @fragment
@@ -33,7 +32,6 @@ fn main(in: FragmentInput) -> FragmentOutput {
 
     let encodedNormal = normalize(in.nor) * 0.5f + vec3f(0.5f);
     out.normal = vec4f(encodedNormal, 1.0f);
-    out.position = vec4f(in.pos, 1.0);
 
     return out;
 }

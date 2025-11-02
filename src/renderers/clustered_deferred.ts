@@ -13,8 +13,6 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
     gbufferDepthView: GPUTextureView;
     gSceneBindGroupLayout: GPUBindGroupLayout;
     gSceneBindGroup: GPUBindGroup;
-    gbufferPosition: GPUTexture;
-    gbufferPositionView: GPUTextureView;
 
 
     cSceneBindGroupLayout: GPUBindGroupLayout;
@@ -48,15 +46,6 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
             usage: GPUTextureUsage.RENDER_ATTACHMENT |
                 GPUTextureUsage.TEXTURE_BINDING,
         });
-        this.gbufferPosition = renderer.device.createTexture({
-            size: [renderer.canvas.width, renderer.canvas.height],
-            format: "rgba16float",
-            usage:
-                GPUTextureUsage.RENDER_ATTACHMENT |
-                GPUTextureUsage.TEXTURE_BINDING,
-        });
-
-        this.gbufferPositionView = this.gbufferPosition.createView();
 
         this.gbufferAlbedoView = this.gbufferAlbedo.createView();
         this.gbufferNormalView = this.gbufferNormal.createView();
@@ -109,7 +98,6 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 targets: [
                         { format: "rgba8unorm" },   // albedo
                         { format: "rgba16float" },  // normal
-                        { format: "rgba16float" },  // position
                 ]
             }
         });
@@ -159,12 +147,6 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 binding: 6,
                 visibility: GPUShaderStage.FRAGMENT,
                 texture: { sampleType: "depth" },
-                },
-                //position
-                {
-                    binding: 7, 
-                    visibility: GPUShaderStage.FRAGMENT, 
-                    texture: { sampleType: "float" } 
                 }
             ],
         });
@@ -190,10 +172,6 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 {
                     binding: 6,
                     resource: this.gbufferDepthView
-                },
-                { 
-                    binding: 7, 
-                    resource: this.gbufferPositionView 
                 }
             ],
         });
@@ -245,12 +223,6 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 clearValue: [0, 0, 0, 1],
                 loadOp: "clear",
                 storeOp: "store",
-            },
-            { 
-                view: this.gbufferPositionView,
-                loadOp: "clear", 
-                storeOp: "store", 
-                clearValue: [0, 0, 0, 1] 
             },
         ],
         depthStencilAttachment: {

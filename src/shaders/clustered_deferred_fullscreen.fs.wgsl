@@ -29,15 +29,31 @@ var gNormal: texture_2d<f32>;
 @group(${bindGroup_scene}) @binding(6)
 var gDepth: texture_depth_2d;
 
-@group(${bindGroup_scene}) @binding(7)
-var gPosition: texture_2d<f32>;
-
 struct FragmentInput {
   @builtin(position) fragCoord: vec4f,
 };
 
 fn clusterIndex(ix: u32, iy: u32, iz: u32) -> u32 {
   return ix + iy * X_SLICES + iz * X_SLICES * Y_SLICES;
+}
+
+// Reconstruct world position from depth buffer
+fn reconstructWorldPosition(fragCoord: vec2f, depth: f32) -> vec3f {
+  // Get screen dimensions from the texture
+  let screenSize = vec2f(textureDimensions(gAlbedo));
+
+  // Convert fragment coordinates to NDC [-1, 1]
+  let uv = fragCoord / screenSize;
+  let ndc = vec2f(uv.x * 2.0 - 1.0, (1.0 - uv.y) * 2.0 - 1.0);
+
+  // Construct clip space position
+  let clipPos = vec4f(ndc, depth, 1.0);
+
+  // Transform to world space using inverse view-projection
+  var worldPos = camera_uniforms.inverseViewProjMat * clipPos;
+  worldPos = worldPos / worldPos.w; // Perspective divide
+
+  return worldPos.xyz;
 }
 
 @fragment
@@ -53,7 +69,9 @@ fn main(in: FragmentInput) -> @location(0) vec4f {
   let nEnc: vec3f = textureLoad(gNormal, ij, 0).xyz;
   let N: vec3f = normalize(nEnc * 2.0 - vec3f(1.0));
 
-  let worldPos: vec3f = textureLoad(gPosition, ij, 0).xyz;
+  // Read depth and reconstruct world position
+  let depth: f32 = textureLoad(gDepth, ij, 0);
+  let worldPos: vec3f = reconstructWorldPosition(in.fragCoord.xy, depth);
 
   let viewPos: vec3f =
     (camera_uniforms.viewMat * vec4f(worldPos, 1.0)).xyz;

@@ -3,7 +3,7 @@ import { toRadians } from "../math_util";
 import { device, canvas, fovYDegrees, aspectRatio } from "../renderer";
 
 class CameraUniforms {
-    readonly buffer = new ArrayBuffer(40 * 4); // 160 bytes - padded to multiple of 16 for uniform buffer alignment
+    readonly buffer = new ArrayBuffer(56 * 4); // 224 bytes - includes inverseViewProjMat
     private readonly floatView = new Float32Array(this.buffer);
 
     set viewMat(mat: Float32Array) {
@@ -13,16 +13,19 @@ class CameraUniforms {
         // TODO-1.1: set the next 16 elements of `this.floatView` to the input `mat`
         this.floatView.set(mat, 16);
     }
+    set inverseViewProjMat(mat: Float32Array) {
+        this.floatView.set(mat, 32);
+    }
 
     setClusterParams(near: number, far: number, fovYDeg: number, aspect: number) {
         const tanHalfFovY = Math.tan(toRadians(fovYDeg * 0.5));
         const tanHalfFovX = tanHalfFovY * aspect;
-        // write at index 32..36
-        this.floatView[32] = near;
-        this.floatView[33] = far;
-        this.floatView[34] = tanHalfFovY;
-        this.floatView[35] = aspect;
-        this.floatView[36] = tanHalfFovX;
+        // write at index 48..52
+        this.floatView[48] = near;
+        this.floatView[49] = far;
+        this.floatView[50] = tanHalfFovY;
+        this.floatView[51] = aspect;
+        this.floatView[52] = tanHalfFovX;
     }
 
     // TODO-2: add extra functions to set values needed for light clustering here
@@ -149,9 +152,12 @@ export class Camera {
         const lookPos = vec3.add(this.cameraPos, vec3.scale(this.cameraFront, 1));
         const viewMat = mat4.lookAt(this.cameraPos, lookPos, [0, 1, 0]);
         const viewProjMat = mat4.mul(this.projMat, viewMat);
+        const inverseViewProjMat = mat4.invert(viewProjMat);
+
         // TODO-1.1: set `this.uniforms.viewProjMat` to the newly calculated view proj mat
         this.uniforms.viewMat = viewMat;
-        this.uniforms.viewProjMat = viewProjMat
+        this.uniforms.viewProjMat = viewProjMat;
+        this.uniforms.inverseViewProjMat = inverseViewProjMat;
         this.uniforms.setClusterParams(
             Camera.nearPlane,
             Camera.farPlane,

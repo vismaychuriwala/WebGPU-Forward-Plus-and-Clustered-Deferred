@@ -14,8 +14,9 @@ struct LightSet {
 
 struct CameraUniforms {
     // TODO-1.3: add an entry for the view proj mat (of type mat4x4f)
-    viewMat:     mat4x4<f32>,
-    viewProjMat: mat4x4f,
+    viewMat:            mat4x4<f32>,
+    viewProjMat:        mat4x4f,
+    inverseViewProjMat: mat4x4f,
     nearPlane   : f32,
     farPlane    : f32,
     tanHalfFovY : f32,
