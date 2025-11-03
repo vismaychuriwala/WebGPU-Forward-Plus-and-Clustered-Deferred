@@ -52,15 +52,6 @@ struct FragmentInput {
   @location(2) uv: vec2f,
 }
 
-fn clamp01(x: f32) -> f32 {
-  return clamp(x, 0.0, 1.0);
-}
-
-fn ndc01(v: vec2f) -> vec2f {
-  // Map NDC [-1, 1] -> [0, 1]
-  return v * 0.5 + vec2f(0.5, 0.5);
-}
-
 fn clusterIndex(ix: u32, iy: u32, iz: u32) -> u32 {
   return ix + iy * X_SLICES + iz * X_SLICES * Y_SLICES;
 }
@@ -78,29 +69,27 @@ fn main(in: FragmentInput) -> @location(0) vec4f {
   let tanHalfFovY = camera_uniforms.tanHalfFovY;
   let tanHalfFovX = camera_uniforms.tanHalfFovX;
 
-  // Projected coordinates in view-space normalized to [-1, 1]
+  // ndc
   let nx = viewPos.x / (d * tanHalfFovX);
   let ny = viewPos.y / (d * tanHalfFovY);
 
-  // Convert to tile-space [0, X_SLICES) and [0, Y_SLICES)
+  // Convert to tile-space
   let xTile = u32(clamp((nx * 0.5 + 0.5) * f32(X_SLICES),
                         0.0, f32(X_SLICES - 1u)));
   let yTile = u32(clamp((ny * 0.5 + 0.5) * f32(Y_SLICES),
                         0.0, f32(Y_SLICES - 1u)));
 
-  // === Z slice (linear) ===
+  // Z slice (linear)
   let nearP = camera_uniforms.nearPlane;
   let farP  = camera_uniforms.farPlane;
   let t = clamp((d - nearP) / (farP - nearP), 0.0, 1.0);
   let zTile = u32(clamp(t * f32(Z_SLICES), 0.0, f32(Z_SLICES - 1u)));
 
-  // Fetch the cluster's light list
   let cIdx = clusterIndex(xTile, yTile, zTile);
   let rec = clusterGrid[cIdx];
   let base = rec.offset;
   let count = rec.count;
 
-  // Accumulate lighting from just the lights in this cluster
   var totalLight = vec3f(0.0, 0.0, 0.0);
   let N = normalize(in.nor);
 

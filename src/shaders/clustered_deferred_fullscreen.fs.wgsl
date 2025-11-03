@@ -21,12 +21,9 @@ var<storage, read> clusterLightIndices: array<u32>;
 
 // G-buffer inputs
 @group(${bindGroup_scene}) @binding(4)
-var gAlbedo: texture_2d<f32>;
+var gPacked: texture_2d<u32>;  // rg32uint: r=albedo.rgb, g=normal.xy
 
 @group(${bindGroup_scene}) @binding(5)
-var gNormal: texture_2d<f32>;
-
-@group(${bindGroup_scene}) @binding(6)
 var gDepth: texture_depth_2d;
 
 struct FragmentInput {
@@ -37,22 +34,27 @@ fn clusterIndex(ix: u32, iy: u32, iz: u32) -> u32 {
   return ix + iy * X_SLICES + iz * X_SLICES * Y_SLICES;
 }
 
+fn unpackAlbedo(packed: u32) -> vec3f {
+  let r = f32((packed >> 16u) & 0xFFu) / 255.0;
+  let g = f32((packed >> 8u) & 0xFFu) / 255.0;
+  let b = f32(packed & 0xFFu) / 255.0;
+  return vec3f(r, g, b);
+}
+
+fn unpackNormal(packed: u32) -> vec3f {
+  let xy = unpack2x16snorm(packed);
+  let z = sqrt(max(0.0, 1.0 - dot(xy, xy)));
+  return normalize(vec3f(xy, z));
+}
+
 // Reconstruct world position from depth buffer
 fn reconstructWorldPosition(fragCoord: vec2f, depth: f32) -> vec3f {
-  // Get screen dimensions from the texture
-  let screenSize = vec2f(textureDimensions(gAlbedo));
-
-  // Convert fragment coordinates to NDC [-1, 1]
+  let screenSize = vec2f(textureDimensions(gPacked));
   let uv = fragCoord / screenSize;
   let ndc = vec2f(uv.x * 2.0 - 1.0, (1.0 - uv.y) * 2.0 - 1.0);
-
-  // Construct clip space position
   let clipPos = vec4f(ndc, depth, 1.0);
-
-  // Transform to world space using inverse view-projection
   var worldPos = camera_uniforms.inverseViewProjMat * clipPos;
-  worldPos = worldPos / worldPos.w; // Perspective divide
-
+  worldPos = worldPos / worldPos.w;
   return worldPos.xyz;
 }
 
@@ -60,14 +62,10 @@ fn reconstructWorldPosition(fragCoord: vec2f, depth: f32) -> vec3f {
 fn main(in: FragmentInput) -> @location(0) vec4f {
   let ij: vec2u = vec2u(in.fragCoord.xy);
 
-  // Read G-buffer
-  let baseColor: vec4f = textureLoad(gAlbedo, ij, 0);
-  if (baseColor.a < 0.5) {
-    discard;
-  }
-
-  let nEnc: vec3f = textureLoad(gNormal, ij, 0).xyz;
-  let N: vec3f = normalize(nEnc * 2.0 - vec3f(1.0));
+  // Read packed G-buffer
+  let packed: vec2<u32> = textureLoad(gPacked, ij, 0).rg;
+  let baseColor: vec3f = unpackAlbedo(packed.r);
+  let N: vec3f = unpackNormal(packed.g);
 
   // Read depth and reconstruct world position
   let depth: f32 = textureLoad(gDepth, ij, 0);
@@ -107,6 +105,6 @@ fn main(in: FragmentInput) -> @location(0) vec4f {
     totalLight += calculateLightContrib(light, worldPos, N);
   }
 
-  let lit: vec3f = baseColor.rgb * totalLight;
+  let lit: vec3f = baseColor * totalLight;
   return vec4f(lit, 1.0);
 }

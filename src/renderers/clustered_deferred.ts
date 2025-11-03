@@ -5,11 +5,10 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
     // TODO-3: add layouts, pipelines, textures, etc. needed for Forward+ here
     // you may need extra uniforms such as the camera view matrix and the canvas resolution
 
-    gbufferAlbedo: GPUTexture;
-    gbufferNormal: GPUTexture;
+    // Optimized G-buffer: single packed texture (rg32uint)
+    gbufferPacked: GPUTexture;
     gbufferDepth: GPUTexture;
-    gbufferAlbedoView: GPUTextureView;
-    gbufferNormalView: GPUTextureView;
+    gbufferPackedView: GPUTextureView;
     gbufferDepthView: GPUTextureView;
     gSceneBindGroupLayout: GPUBindGroupLayout;
     gSceneBindGroup: GPUBindGroup;
@@ -25,17 +24,9 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
         // TODO-3: initialize layouts, pipelines, textures, etc. needed for Forward+ here
         // you'll need two pipelines: one for the G-buffer pass and one for the fullscreen pass
 
-        // Array of light indices per cluster
-        this.gbufferAlbedo = renderer.device.createTexture({
+        this.gbufferPacked = renderer.device.createTexture({
             size: [renderer.canvas.width, renderer.canvas.height],
-            format: "rgba8unorm",
-            usage: GPUTextureUsage.RENDER_ATTACHMENT |
-                GPUTextureUsage.TEXTURE_BINDING,
-        });
-
-        this.gbufferNormal = renderer.device.createTexture({
-            size: [renderer.canvas.width, renderer.canvas.height],
-            format: "rgba16float",
+            format: "rg32uint",
             usage: GPUTextureUsage.RENDER_ATTACHMENT |
                 GPUTextureUsage.TEXTURE_BINDING,
         });
@@ -47,8 +38,7 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 GPUTextureUsage.TEXTURE_BINDING,
         });
 
-        this.gbufferAlbedoView = this.gbufferAlbedo.createView();
-        this.gbufferNormalView = this.gbufferNormal.createView();
+        this.gbufferPackedView = this.gbufferPacked.createView();
         this.gbufferDepthView = this.gbufferDepth.createView();
 
         this.gSceneBindGroupLayout = renderer.device.createBindGroupLayout({
@@ -96,8 +86,7 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                     code: shaders.clusteredDeferredFragSrc
                 }),
                 targets: [
-                        { format: "rgba8unorm" },   // albedo
-                        { format: "rgba16float" },  // normal
+                        { format: "rg32uint" },   // packed albedo + normal
                 ]
             }
         });
@@ -131,20 +120,14 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 buffer: { type: "read-only-storage" },
                 },
                 {
-                // albedo
+                // packed G-buffer (albedo + normal)
                 binding: 4,
                 visibility: GPUShaderStage.FRAGMENT,
-                texture: { sampleType: "float" },
-                },
-                // normal
-                {                
-                binding: 5,
-                visibility: GPUShaderStage.FRAGMENT,
-                texture: { sampleType: "float" },
+                texture: { sampleType: "uint" },
                 },
                 // depth
                 {
-                binding: 6,
+                binding: 5,
                 visibility: GPUShaderStage.FRAGMENT,
                 texture: { sampleType: "depth" },
                 }
@@ -163,14 +146,10 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
                 },
                 {
                     binding: 4,
-                    resource: this.gbufferAlbedoView
+                    resource: this.gbufferPackedView
                 },
                 {
                     binding: 5,
-                    resource: this.gbufferNormalView
-                },
-                {
-                    binding: 6,
                     resource: this.gbufferDepthView
                 }
             ],
@@ -213,14 +192,8 @@ export class ClusteredDeferredRenderer extends renderer.Renderer {
         label: "clustered deferred - gbuffer pass",
         colorAttachments: [
             {
-                view: this.gbufferAlbedoView,
-                clearValue: [0, 0, 0, 1],
-                loadOp: "clear",
-                storeOp: "store",
-            },
-            {
-                view: this.gbufferNormalView,
-                clearValue: [0, 0, 0, 1],
+                view: this.gbufferPackedView,
+                clearValue: [0, 0, 0, 0],
                 loadOp: "clear",
                 storeOp: "store",
             },

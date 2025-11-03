@@ -15,23 +15,25 @@ struct FragmentInput {
 };
 
 struct FragmentOutput {
-    @location(0) albedo: vec4f,
-    @location(1) normal: vec4f,
+    @location(0) packed: vec2<u32>,  // r: albedo.rgb packed, g: normal.xy packed
 };
+
+fn packAlbedo(color: vec3f) -> u32 {
+    let r = u32(clamp(color.r, 0.0, 1.0) * 255.0);
+    let g = u32(clamp(color.g, 0.0, 1.0) * 255.0);
+    let b = u32(clamp(color.b, 0.0, 1.0) * 255.0);
+    return (r << 16u) | (g << 8u) | b;
+}
 
 @fragment
 fn main(in: FragmentInput) -> FragmentOutput {
     var out: FragmentOutput;
-
     let diffuseColor = textureSample(diffuseTex, diffuseTexSampler, in.uv);
     if (diffuseColor.a < 0.5f) {
         discard;
     }
-
-    out.albedo = diffuseColor;
-
-    let encodedNormal = normalize(in.nor) * 0.5f + vec3f(0.5f);
-    out.normal = vec4f(encodedNormal, 1.0f);
-
+    out.packed.r = packAlbedo(diffuseColor.rgb);
+    let N = normalize(in.nor);
+    out.packed.g = pack2x16snorm(N.xy);
     return out;
 }
