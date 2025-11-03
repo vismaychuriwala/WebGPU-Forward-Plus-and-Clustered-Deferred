@@ -25,7 +25,7 @@ stats.showPanel(0);
 document.body.appendChild(stats.dom);
 
 const gui = new GUI();
-gui.add(lights, 'numLights').min(1).max(Lights.maxNumLights).step(1).onChange(() => {
+const numLightsController = gui.add(lights, 'numLights').min(1).max(Lights.maxNumLights).step(1).onChange(() => {
     lights.updateLightSetUniformNumLights();
 });
 
@@ -54,3 +54,13 @@ let renderModeController = gui.add({ mode: renderModes.naive }, 'mode', renderMo
 renderModeController.onChange(setRenderer);
 
 setRenderer(renderModeController.getValue());
+
+// Add button to increase lights by 200
+const lightControls = {
+    increaseLights: function() {
+        lights.numLights = Math.min(lights.numLights + 200, Lights.maxNumLights);
+        lights.updateLightSetUniformNumLights();
+        numLightsController.updateDisplay();
+    }
+};
+gui.add(lightControls, 'increaseLights').name('Add 200 Lights');
