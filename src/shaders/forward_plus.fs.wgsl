@@ -79,10 +79,10 @@ fn main(in: FragmentInput) -> @location(0) vec4f {
   let yTile = u32(clamp((ny * 0.5 + 0.5) * f32(Y_SLICES),
                         0.0, f32(Y_SLICES - 1u)));
 
-  // Z slice (linear)
+  // Z slice (logarithmic)
   let nearP = camera_uniforms.nearPlane;
   let farP  = camera_uniforms.farPlane;
-  let t = clamp((d - nearP) / (farP - nearP), 0.0, 1.0);
+  let t = log(d / nearP) / log(farP / nearP);
   let zTile = u32(clamp(t * f32(Z_SLICES), 0.0, f32(Z_SLICES - 1u)));
 
   let cIdx = clusterIndex(xTile, yTile, zTile);

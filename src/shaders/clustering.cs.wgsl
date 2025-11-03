@@ -85,10 +85,13 @@ fn compute_cluster_bounds(ix: u32, iy: u32, iz: u32) -> AABB {
   let tanY = camera_uniforms.tanHalfFovY;
   let tanX = camera_uniforms.tanHalfFovX;
 
+  // Logarithmic Z slicing
+  let nearP = camera_uniforms.nearPlane;
+  let farP = camera_uniforms.farPlane;
   let t0 = f32(iz) / f32(Z_SLICES);
   let t1 = f32(iz + 1u) / f32(Z_SLICES);
-  let z_near_d = lerp(camera_uniforms.nearPlane, camera_uniforms.farPlane, t0);
-  let z_far_d  = lerp(camera_uniforms.nearPlane, camera_uniforms.farPlane, t1);
+  let z_near_d = nearP * pow(farP / nearP, t0);
+  let z_far_d  = nearP * pow(farP / nearP, t1);
 
   let z0 = -z_near_d;
   let z1 = -z_far_d;
