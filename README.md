@@ -1,19 +1,26 @@
-WebGL Forward+ and Clustered Deferred Shading
-======================
+# WebGL Forward+ and Clustered Deferred Shading
 
-**University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 4**
+**Vismay Churiwala**
 
-* (TODO) YOUR NAME HERE
-* Tested on: (TODO) **Google Chrome 222.2** on
-  Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
+- [LinkedIn](https://www.linkedin.com/in/vismay-churiwala-8b0073190/) | [Website](https://vismaychuriwala.com/)
+- Tested on:
+  - Google Chrome 141.0.7390.123
+  - Windows 11, AMD Ryzen 7 5800H @ 3.2GHz (8C/16T)
+  - 32GB DDR4 RAM
+  - NVIDIA GeForce RTX 3060 Laptop GPU (6GB GDDR6)
 
-### Live Demo
 
-[![](img/thumb.png)](http://TODO.github.io/Project4-WebGPU-Forward-Plus-and-Clustered-Deferred)
 
-### Demo Video/GIF
+### Demo Video
 
-[![](img/video.mp4)](TODO)
+https://github.com/user-attachments/assets/206d7b6f-db5a-4ae4-97de-e5a7cf5c3fbd
+
+> The sponza scene using Deferred Clustered Rendering, 5000 lights
+
+## Live Demo
+
+Try it yourself at [https://vismaychuriwala.github.io/WebGPU-Forward-Plus-and-Clustered-Deferred](https://vismaychuriwala.github.io/WebGPU-Forward-Plus-and-Clustered-Deferred).
+
 
 ### (TODO: Your README)
 
