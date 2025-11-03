@@ -3,23 +3,24 @@
 **Vismay Churiwala**
 
 - [LinkedIn](https://www.linkedin.com/in/vismay-churiwala-8b0073190/) | [Website](https://vismaychuriwala.com/)
-- Tested on:
-  - Google Chrome 141.0.7390.123
-  - Windows 11, AMD Ryzen 7 5800H @ 3.2GHz (8C/16T)
-  - 32GB DDR4 RAM
-  - NVIDIA GeForce RTX 3060 Laptop GPU (6GB GDDR6)
+- Tested on: Google Chrome 141.0.7390.123, Windows 11, AMD Ryzen 7 5800H @ 3.2GHz (8C/16T), 32GB DDR4 RAM, NVIDIA GeForce RTX 3060 Laptop GPU (6GB GDDR6)
+
 
 ## Live Demo
 
-[![](img/sponza.png)](https://vismaychuriwala.github.io/WebGPU-Forward-Plus-and-Clustered-Deferred)
-
-Try it yourself at [https://vismaychuriwala.github.io/WebGPU-Forward-Plus-and-Clustered-Deferred](https://vismaychuriwala.github.io/WebGPU-Forward-Plus-and-Clustered-Deferred)!
-
-## Demo Video
+ Try it yourself at [https://vismaychuriwala.github.io/WebGPU-Forward-Plus-and-Clustered-Deferred](https://vismaychuriwala.github.io/WebGPU-Forward-Plus-and-Clustered-Deferred)!
 
 https://github.com/user-attachments/assets/206d7b6f-db5a-4ae4-97de-e5a7cf5c3fbd
 
-> The sponza scene using Deferred Clustered Rendering, 5000 lights.
+> The sponza scene using Clustered Deferred Rendering with 5000 lights.
+
+## Features Implemented
+
+- **Naive Forward Rendering**
+- **Forward+ Rendering**
+- **Clustered Deferred Rendering**
+- **G-buffer Optimization**
+- **Debug Visualization**
 
 
 ## Overview
@@ -101,7 +102,7 @@ Compressed from 3× vec4f textures (48 bytes/pixel) to 1× vec2<u32> (8 bytes/pi
 
 | Configuration | Frame Time (Before) | Frame Time (After) | Improvement |
 |--------------|--------------------|--------------------|-------------|
-| 1920×1080, 5000 lights | X.XX ms | X.XX ms | X.X% faster |
+| 1920×1080, 5000 lights | 48 ms | 42 ms | 12.5% faster |
 
 **Best case:** High resolution + bandwidth-bound scenes. Reduces G-buffer fetches from 3 to 1.
 
@@ -116,15 +117,44 @@ Compressed from 3× vec4f textures (48 bytes/pixel) to 1× vec2<u32> (8 bytes/pi
 
 ### Effect of Cluster Grid Resolution
 
-![Tile size vs performance](img/perf_tiles.png)
-
 | Grid Size (X×Y×Z) | Total Clusters | Frame Time | Notes |
 |-------------------|----------------|------------|-------|
-| 8×4×12 | XXX | X.XX ms | Coarse, fewer cache misses |
-| 16×9×24 | 3,456 | X.XX ms | Balanced (current) |
-| 32×18×24 | XX,XXX | X.XX ms | Fine, more overhead |
+| 8×4×12 | 384 | 77 ms | Coarse, fewer cache misses |
+| 16×9×24 | 3,456 | 42 ms | Balanced (current) |
+| 32×18×24 | 13824 | 41 ms | Fine, more overhead |
+
+Note that the grid sizes are logarithmical in the depth direction, which impacts performance and visual quality massively compared to linear z which causes lots of clusters to get saturated while others stay empty.
 
 Finer grids reduce lights per cluster but increase compute overhead and cache misses. 16×9×24 balances this with 10-50 lights per cluster.
+
+### Z-Slicing Strategy: Linear vs Logarithmic
+
+The choice between linear and logarithmic z-slicing dramatically affects cluster light distribution. The debug visualizations show brightness based on the number of lights in each cluster, with red indicating clusters that have exceeded `MAX_LIGHTS_PER_CLUSTER` (1,023).
+
+<table>
+<tr>
+<td width="50%">
+
+**Linear Z-Slicing**
+
+![Linear z-slicing](img/debug/linear_scaling.gif)
+
+Depth slices evenly distributed. Near clusters become oversaturated (red) while far clusters remain mostly empty.
+
+</td>
+<td width="50%">
+
+**Logarithmic Z-Slicing**
+
+![Logarithmic z-slicing](img/debug/log_scaling.gif)
+
+More clusters allocated near the camera where lights concentrate. Better distribution prevents saturation.
+
+</td>
+</tr>
+</table>
+
+Logarithmic slicing matches the perspective projection's depth distribution, making it the preferred approach for real-time rendering.
 
 ### Credits
 

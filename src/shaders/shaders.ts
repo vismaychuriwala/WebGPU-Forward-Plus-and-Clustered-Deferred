@@ -35,7 +35,7 @@ export const constants = {
     ySlices: 9,
     zSlices: 24,
     
-    maxLightsPerCluster: 1024,
+    maxLightsPerCluster: 1023,
 
     clusterWorkgroupSizeX: 8,
     clusterWorkgroupSizeY: 8,
